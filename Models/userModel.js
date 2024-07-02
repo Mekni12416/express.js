@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
+
+
 const userSchema = new mongoose.Schema
 ({
     name : String,
@@ -8,8 +10,8 @@ const userSchema = new mongoose.Schema
     email : String,
     pasword : String,
     role : { type : String , enum: ['admin','client','formateur']},
-    image_user :{type:String , required: false , default: "client.png"}
-    
+    image_user :{type:String , required: false , default: "client.png"},
+    cars : [{type : mongoose.Schema.Types.ObjectId , ref :"Car"}],
 },{ timestamps: true});
 
 userSchema.post('save',async function(req,res,next){
