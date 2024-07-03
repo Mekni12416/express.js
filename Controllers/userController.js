@@ -1,6 +1,11 @@
 const userModel = require("../Models/userModel");
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+const maxAge = 2 * 60 * 60
 
+const createToken = (id) => {
+  return jwt.sign({id},'net work',{expiresIn: maxAge})
+}
 module.exports.AddUserC = async (req, res, next) => {
   const { name, age, email, pasword } = req.body;
   const role = "client";
@@ -77,7 +82,7 @@ module.exports.updateUserPasword = async (req, res) => {
 
     updated = await userModel.findByIdAndUpdate(
       id,
-      { $set: { pasword: this.paswordhach} },
+      { $set: { pasword: this.paswordhach } },
       { new: true }
     );
     res.status(200).json(updated);
@@ -125,65 +130,65 @@ module.exports.AddUser = async (req, res, next) => {
 };
 
 module.exports.getUsersbyordercroi = async (req, res, next) => {
-    try {
-      const users =await userModel.find().sort({age:-1});
-      if (users.length === 0 && !users) {
-        throw new console.error("No users found");
-      }
-      res.status(200).json({ users });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
+  try {
+    const users = await userModel.find().sort({ age: -1 });
+    if (users.length === 0 && !users) {
+      throw new console.error("No users found");
     }
-  };
+    res.status(200).json({ users });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-
-  module.exports.getUserssup18 = async (req, res, next) => {
-    try {
-      const users =await userModel.find({age:{$gt:18}});
-      if (users.length === 0 && !users) {
-        throw new console.error("No users found");
-      }
-      res.status(200).json({ users });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
+module.exports.getUserssup18 = async (req, res, next) => {
+  try {
+    const users = await userModel.find({ age: { $gt: 18 } });
+    if (users.length === 0 && !users) {
+      throw new console.error("No users found");
     }
-  };
+    res.status(200).json({ users });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-  
-  module.exports.getUsersbyage = async (req, res, next) => {
-    try {
-        //const {age} = req.params;
-        const age = req.params.age;
-        const ageint = parseInt(age);
-      const users =await userModel.find({age:{$lt:ageint}}).sort({age:1});
-      if (users.length === 0 && !users) {
-        throw new console.error("No users found");
-      }
-      res.status(200).json({ users });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
+module.exports.getUsersbyage = async (req, res, next) => {
+  try {
+    //const {age} = req.params;
+    const age = req.params.age;
+    const ageint = parseInt(age);
+    const users = await userModel
+      .find({ age: { $lt: ageint } })
+      .sort({ age: 1 });
+    if (users.length === 0 && !users) {
+      throw new console.error("No users found");
     }
-  };
+    res.status(200).json({ users });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
+module.exports.getusersbetweenXandY = async (req, res, next) => {
+  //?minage=1&maxage=80
+  try {
+    //const {age} = req.params;
+    const minage = parseInt(req.query.minage, 10);
+    const maxage = parseInt(req.query.maxage, 10);
 
-  module.exports.getusersbetweenXandY = async (req, res, next) => {//?minage=1&maxage=80
-    try {
-        //const {age} = req.params;
-        const minage = parseInt(req.query.minage,10);
-        const maxage = parseInt(req.query.maxage,10);
-
-      const users =await userModel.find({age:{$gt : minage , $lt : maxage}}).sort({age:1});
-      if (users.length === 0 && !users) {
-        throw new console.error("No users found");
-      }
-      res.status(200).json({ users });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
+    const users = await userModel
+      .find({ age: { $gt: minage, $lt: maxage } })
+      .sort({ age: 1 });
+    if (users.length === 0 && !users) {
+      throw new console.error("No users found");
     }
-  };
+    res.status(200).json({ users });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-
-  
 //   module.exports.searchusersbyname= async (req, res, next) => {
 //     try {
 //         const name = req.query.name;
@@ -198,29 +203,64 @@ module.exports.getUsersbyordercroi = async (req, res, next) => {
 //     }
 //   };
 
-
 module.exports.searchUsersByName = async (req, res, next) => {
-    try {
-      //const{name} = req.query;
-      const name = req.query.name;
-  
-      // Vérification si le nom est fourni
-      if (!name) {
-        return res.status(400).json({ message: 'Name query parameter is required' });
-      }
-  
-      // Rechercher les utilisateurs dont le nom contient la chaîne spécifiée, en ignorant la casse
-      const users = await userModel.find({ name: new RegExp(name, 'i') }).sort({ age: 1 });
-  
-      // Vérification si des utilisateurs sont trouvés
-      if (!users || users.length === 0) {
-        return res.status(404).json({ message: 'No users found' });
-      }
-  
-      // Répondre avec la liste des utilisateurs trouvés
-      res.status(200).json({ users });
-    } catch (err) {
-      // Gestion des erreurs
-      next(err); // Utiliser next pour passer l'erreur au middleware de gestion des erreurs
+  try {
+    //const{name} = req.query;
+    const name = req.query.name;
+
+    // Vérification si le nom est fourni
+    if (!name) {
+      return res
+        .status(400)
+        .json({ message: "Name query parameter is required" });
     }
-  };
+
+    // Rechercher les utilisateurs dont le nom contient la chaîne spécifiée, en ignorant la casse
+    const users = await userModel
+      .find({ name: new RegExp(name, "i") })
+      .sort({ age: 1 });
+
+    // Vérification si des utilisateurs sont trouvés
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+
+    // Répondre avec la liste des utilisateurs trouvés
+    res.status(200).json({ users });
+  } catch (err) {
+    // Gestion des erreurs
+    next(err); // Utiliser next pour passer l'erreur au middleware de gestion des erreurs
+  }
+};
+   
+ 
+
+
+
+module.exports.login = async (req, res) => {
+  try { 
+    const { email, pasword } = req.body;
+
+    const user = await userModel.login(email, pasword);
+    
+    const token = createToken(user._id);
+    console.log(token);
+    res.cookie('this is token',token,{httpOnly : false , maxAge:maxAge*1000})
+
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+module.exports.logout = async (req, res, next) => {
+  try {
+    
+    res.cookie('this is token',null,{httpOnly : true , maxAge:1})
+    res.status(200).json({ message: "user logged out" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
