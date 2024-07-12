@@ -3,12 +3,12 @@ const userModel = require("../Models/userModel");
 
 module.exports.requireAuthUser = (req, res, next) => {
   // Récupérez le token des cookies
-  const token = req.cookies["this is token"];
+  const token = req.cookies["this is jwttoken"];
   console.log("jwt", token);
 
   if (token) {
     // Vérifiez le token
-    jwt.verify(token, "net work", async (err, decoded) => {
+    jwt.verify(token,process.env.Net_Secret, async (err, decoded) => {
       if (err) {
         // En cas d'erreur lors de la vérification du token
         res.status(401).json({ message: "erreur token" });

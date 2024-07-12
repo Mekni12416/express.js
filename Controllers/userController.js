@@ -1,11 +1,9 @@
 const userModel = require("../Models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
-const maxAge = 2 * 60 * 60
+const maxAge = 2 * 60 * 60; // expires in 2 hours
 
-const createToken = (id) => {
-  return jwt.sign({id},'net work',{expiresIn: maxAge})
-}
+
 module.exports.AddUserC = async (req, res, next) => {
   const { name, age, email, pasword } = req.body;
   const role = "client";
@@ -153,6 +151,8 @@ module.exports.getUserssup18 = async (req, res, next) => {
   }
 };
 
+
+
 module.exports.getUsersbyage = async (req, res, next) => {
   try {
     //const {age} = req.params;
@@ -169,6 +169,9 @@ module.exports.getUsersbyage = async (req, res, next) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
 
 module.exports.getusersbetweenXandY = async (req, res, next) => {
   //?minage=1&maxage=80
@@ -210,9 +213,7 @@ module.exports.searchUsersByName = async (req, res, next) => {
 
     // Vérification si le nom est fourni
     if (!name) {
-      return res
-        .status(400)
-        .json({ message: "Name query parameter is required" });
+      return res.status(400).json({ message: "Name query parameter is required" });
     }
 
     // Rechercher les utilisateurs dont le nom contient la chaîne spécifiée, en ignorant la casse
@@ -233,7 +234,14 @@ module.exports.searchUsersByName = async (req, res, next) => {
   }
 };
    
+
+
  
+
+const createToken = (id) => {
+  return jwt.sign({id},process.env.Net_Secret,{expiresIn: maxAge})
+}
+
 
 
 
@@ -245,7 +253,7 @@ module.exports.login = async (req, res) => {
     
     const token = createToken(user._id);
     console.log(token);
-    res.cookie('this is token',token,{httpOnly : false , maxAge:maxAge*1000})
+    res.cookie('this is jwttoken',token,{httpOnly : false , maxAge:maxAge*1000})
 
 
     res.status(200).json(user);
@@ -255,11 +263,28 @@ module.exports.login = async (req, res) => {
 };
 
 
+
+
 module.exports.logout = async (req, res, next) => {
   try {
     
-    res.cookie('this is token',null,{httpOnly : true , maxAge:1})
+    res.cookie('this is jwstoken',null,{httpOnly : true , maxAge:1})
     res.status(200).json({ message: "user logged out" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
+module.exports.getuserauth = async (req, res, next) => {
+  try {
+    const id = req.session.user._id;
+    const users = await userModel.findByIdAndUpdate(id);
+    if (users.length === 0 && !users) {
+      throw new console.error("No users found");
+    }
+    res.status(200).json({ users });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

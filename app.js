@@ -8,11 +8,18 @@ const { connectToMongoDB } = require("./db/BD");
 const session = require("express-session");
 
 
+
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var osRouter = require("./routes/os");
 var carRouter = require("./routes/carRouter");
+
+
+
 var app = express();
+
+
+
 
 require("dotenv").config();
 
@@ -25,8 +32,11 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 
+
+
+
 app.use(session({
-  secret: 'net work',
+  secret:process.env.Net_Secret,
   resave: false,
   saveUninitialized: true ,
   cookie: {secure:false , maxAge: 2*60*60}
